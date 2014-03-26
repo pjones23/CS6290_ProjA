@@ -47,6 +47,7 @@ class PREDICTOR {
 
 private:
 	UINT64 ghr;          // global history register
+	INT32 ghrCounter; // counter used for conversion from 0 to -1 (if < history length, no conversion)
 	// UINT32 *pht;          // pattern history table
 	INT32 historyLength; // history length
 	// UINT32 numPhtEntries; // entries in pht
@@ -64,8 +65,7 @@ public:
 	// Contestants can define their own functions below
 	INT32 getPerceptronPrediction(UINT32 perceptronIndex);
 	UINT32 getPerceptronIndex(UINT32 PC);
-	INT32 saturatedWeightInc(INT32 originalWeight);
-	INT32 saturatedWeightDec(INT32 originalWeight);
+	INT32 saturatedWeightCalc(INT32 originalWeight, INT32 inc);
 	INT32 getBitOfGHR(INT32 bitIndex);
 
 	INT32 numPerceptrons; // number of perceptrons

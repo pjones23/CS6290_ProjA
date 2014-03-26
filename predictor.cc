@@ -32,6 +32,7 @@ PREDICTOR::PREDICTOR(void) {
 
 	historyLength = HIST_LEN;
 	ghr = 0;
+	ghrCounter = 0;
 
 	// Initialize perceptron table
 	// Hardware budget ( in bits ) = Number of perceptrons x Number of weights per perceptron x Number of bits per weight
@@ -90,11 +91,12 @@ UINT32 branchTarget) {
 	// resolveDir = 0 or 1
 	// train
 	INT32 t;
-	if (resolveDir == TAKEN) {
+	if (resolveDir) {
 		t = 1;
 	} else {
 		t = -1;
 	}
+
 
 	UINT32 perceptronIndex = getPerceptronIndex(PC);
 	INT32 prediction = getPerceptronPrediction(perceptronIndex);
@@ -103,32 +105,29 @@ UINT32 branchTarget) {
 	//cout << "pred dir: " << predictionSign << endl;
 	//cout << "resolve dir: " << resolveDir << endl;
 	//if (predictionSign != resolveDir)
-	//cout << "MISS UPDATE!!!" << endl;
+		//cout << "MISS UPDATE!!!" << endl;
 
 	if ((predDir != resolveDir) || (abs(prediction) <= threshold)) {
 		//cout << "UPDATING!!!" << endl;
 		INT32 x;
-		for (INT32 i = 1; i < historyLength; ++i) {
+		for (INT32 i = 0; i < historyLength; ++i) {
 			x = getBitOfGHR(i);
-			if (x == 1 && resolveDir == TAKEN) {
-				perceptronTbl[perceptronIndex][i] = saturatedWeightInc(perceptronTbl[perceptronIndex][i]);
-			} else if (x == 1 && resolveDir == NOT_TAKEN){ // if x == 1
-				perceptronTbl[perceptronIndex][i] = saturatedWeightDec(perceptronTbl[perceptronIndex][i]);
-			} else if (x == -1 && resolveDir == TAKEN){ // if x == 1
-				perceptronTbl[perceptronIndex][i] = saturatedWeightInc(perceptronTbl[perceptronIndex][i]);
-			} else if (x == -1 && resolveDir == NOT_TAKEN){ // if x == 1
-				perceptronTbl[perceptronIndex][i] = saturatedWeightDec(perceptronTbl[perceptronIndex][i]);
-			}
-
+			perceptronTbl[perceptronIndex][i] = saturatedWeightCalc(perceptronTbl[perceptronIndex][i], (t * x));
 			//cout << "Saturated Weight: " << perceptronTbl[perceptronIndex][i] << endl;
 		}
-		perceptronTbl[perceptronIndex][numWeights - 1] = t; //w0
+		perceptronTbl[perceptronIndex][numWeights - 1] = t;
 	}
 
 	// update the GHR
-	ghr = (ghr << 1);
-	if (resolveDir == TAKEN) {
-		ghr++;
+	  ghr = (ghr << 1);
+
+	  if(resolveDir == TAKEN){
+	    ghr++;
+	  }
+
+	// update ghr counter
+	if (ghrCounter < historyLength) {
+		ghrCounter++;
 	}
 
 }
@@ -150,6 +149,9 @@ void PREDICTOR::TrackOtherInst(UINT32 PC, OpType opType, UINT32 branchTarget) {
 /////////////////////////////////////////////////////////////
 
 UINT32 PREDICTOR::getPerceptronIndex(UINT32 PC) {
+	//cout << "branch addr: " << branchAddr << endl;
+	//cout << "index: " << (branchAddr % numPerceptrons) << endl;
+
 	return (PC % numPerceptrons);
 }
 
@@ -175,27 +177,25 @@ INT32 PREDICTOR::getPerceptronPrediction(UINT32 perceptronIndex) {
 	return pred;
 }
 
-INT32 PREDICTOR::saturatedWeightInc(INT32 originalWeight) {
-	if (originalWeight < WEIGHT_MAX) {
-		return originalWeight + 1;
+INT32 PREDICTOR::saturatedWeightCalc(INT32 originalWeight, INT32 inc) {
+	INT32 sum = originalWeight + inc;
+	if (sum >= WEIGHT_MIN && sum <= WEIGHT_MAX) {
+		return sum;
 	} else {
 		return originalWeight;
 	}
-}
 
-INT32 PREDICTOR::saturatedWeightDec(INT32 originalWeight) {
-	if (originalWeight > WEIGHT_MIN) {
-		return originalWeight - 1;
-	} else {
-		return originalWeight;
-	}
 }
 
 INT32 PREDICTOR::getBitOfGHR(INT32 bitIndex) {
 	INT32 bit = ghr >> bitIndex;
-	bit = bit % 2;
-	if (bit == 0) {
-		bit = -1;
+	bit %= 2;
+	if (ghrCounter < historyLength && bitIndex <= ghrCounter) {
+		if (bit == 0) {
+			bit = -1;
+		} else {
+			bit = 1;
+		}
 	}
 	return bit;
 }
