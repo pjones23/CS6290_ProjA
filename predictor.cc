@@ -8,10 +8,10 @@
 #define WEIGHT_MIN -128 // 8 bit weight
 #define WEIGHT_INIT 0
 
-#define HIST_LEN 15
+#define HIST_LEN 31
 #define WEIGHT_SIZE (1<<3) // number of bits per weight
 #define HW_BUGDGET (1<<18) // Hardware budget ( in bits ) = 32 KB = 32768 B = 262144 b
-#define NUM_WEIGHTS (1<<4) // HIST_LEN+1 = 15 + 1
+#define NUM_WEIGHTS (1<<5) // HIST_LEN+1 = 15 + 1
 //#define NUM_PERCEPTRONS (HW_BUGDGET / (NUM_WEIGHTS * WEIGHT_SIZE)) //(hardwareBudget / (numWeights * numBitsPerWeight))
 #define NUM_PERCEPTRONS (1<<10)
 
@@ -102,21 +102,15 @@ UINT32 branchTarget) {
 	//cout << "pred: " << prediction << endl;
 	//cout << "pred dir: " << predictionSign << endl;
 	//cout << "resolve dir: " << resolveDir << endl;
-	//if (predictionSign != resolveDir)
-	//cout << "MISS UPDATE!!!" << endl;
 
 	if ((predDir != resolveDir) || (abs(prediction) <= threshold)) {
 		//cout << "UPDATING!!!" << endl;
 		INT32 x;
-		for (INT32 i = 1; i < historyLength; ++i) {
+		for (INT32 i = 0; i < historyLength; ++i) {
 			x = getBitOfGHR(i);
-			if (x == 1 && resolveDir == TAKEN) {
+			if (x == t) {
 				perceptronTbl[perceptronIndex][i] = saturatedWeightInc(perceptronTbl[perceptronIndex][i]);
-			} else if (x == 1 && resolveDir == NOT_TAKEN){ // if x == 1
-				perceptronTbl[perceptronIndex][i] = saturatedWeightDec(perceptronTbl[perceptronIndex][i]);
-			} else if (x == -1 && resolveDir == TAKEN){ // if x == 1
-				perceptronTbl[perceptronIndex][i] = saturatedWeightInc(perceptronTbl[perceptronIndex][i]);
-			} else if (x == -1 && resolveDir == NOT_TAKEN){ // if x == 1
+			} else {
 				perceptronTbl[perceptronIndex][i] = saturatedWeightDec(perceptronTbl[perceptronIndex][i]);
 			}
 
@@ -196,6 +190,9 @@ INT32 PREDICTOR::getBitOfGHR(INT32 bitIndex) {
 	bit = bit % 2;
 	if (bit == 0) {
 		bit = -1;
+	}
+	else{
+		bit = 1;
 	}
 	return bit;
 }
