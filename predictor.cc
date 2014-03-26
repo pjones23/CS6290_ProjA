@@ -63,11 +63,11 @@ PREDICTOR::PREDICTOR(void) {
 		}
 	}
 
-	cout << "history length: " << historyLength << endl;
-	cout << "# weights/perceptron: " << WEIGHT_SIZE << endl;
-	cout << "# weight: " << numWeights << endl;
-	cout << "# perceptrons: " << numPerceptrons << endl;
-	cout << "threshold: " << threshold << endl;
+	//cout << "history length: " << historyLength << endl;
+	//cout << "# weights/perceptron: " << WEIGHT_SIZE << endl;
+	//cout << "# weight: " << numWeights << endl;
+	//cout << "# perceptrons: " << numPerceptrons << endl;
+	//cout << "threshold: " << threshold << endl;
 
 }
 
@@ -126,7 +126,13 @@ UINT32 branchTarget) {
 
 			//cout << "Saturated Weight: " << perceptronTbl[perceptronIndex][i] << endl;
 		}
-		perceptronTbl[perceptronIndex][numWeights - 1] = t; //w0
+		if(t == 1){
+			perceptronTbl[perceptronIndex][numWeights - 1] = saturatedWeightInc(perceptronTbl[perceptronIndex][numWeights - 1]); //w0
+		}
+		else{
+			perceptronTbl[perceptronIndex][numWeights - 1] = saturatedWeightDec(perceptronTbl[perceptronIndex][numWeights - 1]); //w0
+		}
+
 	}
 
 	// update the GHR
