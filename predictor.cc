@@ -8,12 +8,22 @@
 #define WEIGHT_MIN -128 // 8 bit weight
 #define WEIGHT_INIT 0
 
-#define HIST_LEN 31
+// Whenever changing settings, change HIST_LEN, NUM_WEIGHTS, NUM_Perceptions 2^x = (1<<x)
+// 16 = (1<<4)
+// 32 = (1<<5)
+// 64 = (1<<6)
+// 128 = (1<<7)
+// 256 = (1<<8)
+// 512 = (1<<9)
+// 1024 = (1<<10)
+// 2048  = (1<<11)
+// 32KB = 262144 = (1<<18)
+#define HIST_LEN 15
 #define WEIGHT_SIZE (1<<3) // number of bits per weight
 #define HW_BUGDGET (1<<18) // Hardware budget ( in bits ) = 32 KB = 32768 B = 262144 b
-#define NUM_WEIGHTS (1<<5) // HIST_LEN+1 = 15 + 1
+#define NUM_WEIGHTS (1<<4) // HIST_LEN+1 = 15 + 1
 //#define NUM_PERCEPTRONS (HW_BUGDGET / (NUM_WEIGHTS * WEIGHT_SIZE)) //(hardwareBudget / (numWeights * numBitsPerWeight))
-#define NUM_PERCEPTRONS (1<<10)
+#define NUM_PERCEPTRONS (1<<11)
 
 INT32 perceptronTbl[NUM_PERCEPTRONS][NUM_WEIGHTS]; // table of perceptrons
 
